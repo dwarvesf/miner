@@ -1,11 +1,11 @@
 # miner
 The mining assistant of Dwarves Foundation
 
-# Install
+## Prerequisite
 
-### Prerequisite
+Go installed: https://github.com/dwarvesf/setup-backend#install-go
 
-- Go installed: https://github.com/dwarvesf/setup-backend#install-go
+## Install
 
 ```
 $ go get https://github.com/dwarvesf/miner
