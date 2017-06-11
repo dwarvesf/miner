@@ -13,6 +13,16 @@ $ go get https://github.com/dwarvesf/miner
 
 # Usage
 
+## Help
+
+```
+$ miner
+$ miner -h
+
+// To view usage of specific sub-command
+$ miner <command>
+```
+
 ## Dotfiles
 
 Pull and setup dotfiles from [**dwarvesf/dotfiles**](https://github.com/dwarvesf/dotfiles)
