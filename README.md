@@ -108,3 +108,21 @@ The command will help to send email with predefined template from the Dashboard
 ```
 $ miner email holiday
 ```
+
+## Contributing
+
+The main purpose of this repository is to continue to evolve the way we setup development environment, making it faster and easier to use. Development happens in the open on GitHub, and we are grateful to the community for contributing bugfixes and improvements. Read below to learn how you can take part in improving it.
+
+### Contributing Guide
+
+Read our contributing guide to learn about our development process, how to propose bugfixes and improvements, and how to build and test your changes.
+
+## License
+
+Copyright 2017 Dwarves Foundation
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
