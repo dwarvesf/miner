@@ -7,12 +7,17 @@ import (
 )
 
 // Config ...
-type Config struct{}
+type Config struct {
+	URL    string
+	ApiKey string
+}
 
+// DefaultConfigPath ...
 const (
 	DefaultConfigPath = ""
 )
 
+// NewConfig ...
 func NewConfig(path string) *Config {
 	c := Config{}
 
