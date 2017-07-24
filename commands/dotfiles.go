@@ -47,7 +47,7 @@ func initDotfilesCommand() *cobra.Command {
 		},
 	}
 
-	subBackup.Flags().StringP("out", "o", "", "the back upfile directory")
+	subBackup.Flags().StringP("out", "o", "", "the output back up file directory")
 	viper.BindPFlag("out", subBackup.Flags().Lookup("out"))
 	dotfilesCmd.AddCommand(subBackup)
 
@@ -59,6 +59,8 @@ func initDotfilesCommand() *cobra.Command {
 			os.Exit(0)
 		},
 	}
+	subRestore.Flags().StringP("in", "i", "", "the input back up file directory")
+	viper.BindPFlag("in", subRestore.Flags().Lookup("in"))
 	dotfilesCmd.AddCommand(subRestore)
 
 	subUpdate := &cobra.Command{
@@ -139,9 +141,49 @@ func runBackupDotfiles() {
 		logrus.WithError(err).Errorf("cannot write file")
 		return
 	}
+
+	logrus.Println("configuration successfully backed up")
 }
 
 func runRestoreDotfiles() {
+	inputPath := viper.Get("in").(string)
+	if inputPath == "" {
+		logrus.Error("please provide input back up path")
+		return
+	}
+
+	path, err := getPathConfig()
+	if err != nil {
+		logrus.WithError(err).Error("cannot get path config file")
+		return
+	}
+
+	zf, err := os.Open(inputPath)
+	if err != nil {
+		logrus.WithError(err).Error("cannot open input path")
+		return
+	}
+
+	r, err := gzip.NewReader(zf)
+	if err != nil {
+		logrus.WithError(err).Error("cannot create new reader gzip")
+		return
+	}
+	defer r.Close()
+
+	s, err := ioutil.ReadAll(r)
+	if err != nil {
+		logrus.WithError(err).Error("cannot read all file")
+		return
+	}
+
+	err = ioutil.WriteFile(path, s, 0644)
+	if err != nil {
+		logrus.WithError(err).Errorf("cannot write to file config")
+		return
+	}
+
+	logrus.Println("configuration successfully restored")
 }
 
 func runUpdateDotfiles() {
