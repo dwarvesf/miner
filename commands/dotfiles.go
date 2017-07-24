@@ -1,9 +1,16 @@
 package commands
 
 import (
+	"fmt"
 	"os"
+	"os/user"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
+)
+
+const (
+	ConfigFileName = ".dfrc"
 )
 
 func initDotfilesCommand() *cobra.Command {
@@ -65,7 +72,27 @@ func initDotfilesCommand() *cobra.Command {
 	return dotfilesCmd
 }
 
+// runInitDotfiles creates .dfrc if not exist
 func runInitDotfiles() {
+	usr, err := user.Current()
+	if err != nil {
+		logrus.WithError(err).Error("cannot get current user")
+		return
+	}
+
+	path := fmt.Sprintf("%s/%s", usr.HomeDir, ConfigFileName)
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		_, err = os.Create(path)
+		if err != nil {
+			logrus.WithError(err).Errorf("cannot create file config %s", ConfigFileName)
+			return
+		}
+
+		logrus.Printf("%s successfully created, locates in %s/%s", ConfigFileName, usr.HomeDir, ConfigFileName)
+		return
+	}
+
+	logrus.Errorf("%s already existed", ConfigFileName)
 }
 
 func runBackupDotfiles() {
