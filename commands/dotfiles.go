@@ -6,7 +6,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"os/user"
+	"strings"
+
+	yaml "gopkg.in/yaml.v2"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -14,13 +18,32 @@ import (
 )
 
 const (
-	ConfigFileName = ".dfrc"
-	BackupFileName = "dfrc.zip"
+	ConfigFileName   = ".dfrc"
+	BackupFileName   = "dfrc.zip"
+	ConfigRemotePath = "https://raw.githubusercontent.com/dwarvesf/dotfiles/master/.dfrc"
 )
 
 var (
 	Out string
 )
+
+type Schema struct {
+	Dotfiles  Dotfiles      `yaml:"dotfiles"`
+	Customize Customization `yaml:"customize"`
+}
+
+type Dotfiles struct {
+	Theme     string   `yaml:"theme"`
+	Languages []string `yaml:"languages"`
+	Tools     []string `yaml:"tools"`
+	Editors   []string `yaml:"editors"`
+	Apps      []string `yaml:"apps"`
+	Fonts     []string `yaml:"fonts"`
+}
+
+type Customization struct {
+	Path string
+}
 
 func initDotfilesCommand() *cobra.Command {
 	dotfilesCmd := &cobra.Command{
@@ -179,7 +202,7 @@ func runRestoreDotfiles() {
 
 	err = ioutil.WriteFile(path, s, 0644)
 	if err != nil {
-		logrus.WithError(err).Errorf("cannot write to file config")
+		logrus.WithError(err).Error("cannot write to file config")
 		return
 	}
 
@@ -187,6 +210,51 @@ func runRestoreDotfiles() {
 }
 
 func runUpdateDotfiles() {
+	// resp, err := http.Get(ConfigRemotePath)
+	// if err != nil {
+	// logrus.WithError(err).Error("cannot get file config remote")
+	// return
+	// }
+	// defer resp.Body.Close()
+
+	// bs, err := ioutil.ReadAll(resp.Body)
+	// if err != nil {
+	// logrus.WithError(err).Error("cannot get read body remote config file")
+	// return
+	// }
+
+	bs, err := ioutil.ReadFile(".dfrc.yml")
+	if err != nil {
+		panic(err)
+	}
+
+	var rschema Schema
+	err = yaml.Unmarshal(bs, &rschema)
+	if err != nil {
+		logrus.WithError(err).Error("cannot unmarshal yaml remote file")
+		return
+	}
+
+	path, err := getPathConfig()
+	if err != nil {
+		logrus.WithError(err).Error("cannot get path config file")
+		return
+	}
+
+	bs, err = ioutil.ReadFile(path)
+	if err != nil {
+		logrus.WithError(err).Error("cannot read local file")
+		return
+	}
+
+	var lschema Schema
+	err = yaml.Unmarshal(bs, &lschema)
+	if err != nil {
+		logrus.WithError(err).Error("cannot unmarshal yaml local file")
+		return
+	}
+
+	compareAndInstall(rschema, lschema)
 }
 
 func runCleanupDotfiles() {
@@ -199,4 +267,70 @@ func getPathConfig() (string, error) {
 	}
 
 	return fmt.Sprintf("%s/%s", usr.HomeDir, ConfigFileName), nil
+}
+
+func compareAndInstall(remote Schema, local Schema) {
+	ltool := []string{}
+	for _, k := range remote.Dotfiles.Tools {
+		if !stringInSlice(k, local.Dotfiles.Tools) {
+			ltool = append(ltool, k)
+		}
+	}
+	installTools(ltool)
+
+	llang := []string{}
+	for _, k := range remote.Dotfiles.Languages {
+		if !stringInSlice(k, local.Dotfiles.Languages) {
+			llang = append(llang, k)
+		}
+	}
+	installLanguages(llang)
+
+	leditor := []string{}
+	for _, k := range remote.Dotfiles.Editors {
+		if !stringInSlice(k, local.Dotfiles.Editors) {
+			leditor = append(leditor, k)
+		}
+	}
+	installEditors(leditor)
+}
+
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
+func installLanguages(langs []string) {
+	for _, v := range langs {
+		if err := brewInstall(v); err != nil {
+			logrus.WithError(err).Errorf("failed to install language %s", v)
+		}
+	}
+}
+
+func installTools(tools []string) {
+	for _, v := range tools {
+		if err := brewInstall(v); err != nil {
+			logrus.WithError(err).Errorf("failed to install tool %s", v)
+		}
+	}
+}
+
+func installEditors(editors []string) {
+	for _, v := range editors {
+		if err := brewInstall(v); err != nil {
+			logrus.WithError(err).Errorf("failed to install editor %s", v)
+		}
+	}
+}
+
+func brewInstall(name string) error {
+	cmd := exec.Command("brew", "install", name)
+	fmt.Printf("==> Executing: %s\n", strings.Join(cmd.Args, " "))
+
+	return cmd.Run()
 }
