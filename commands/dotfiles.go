@@ -22,15 +22,13 @@ const (
 	ConfigRemotePath = "https://raw.githubusercontent.com/dwarvesf/dotfiles/master/.dfrc"
 )
 
-var (
-	Out string
-)
-
+// Schema defines structure of .dfrc file
 type Schema struct {
 	Dotfiles  Dotfiles      `yaml:"dotfiles"`
 	Customize Customization `yaml:"customize"`
 }
 
+// dotfiles contains configuration of . files
 type Dotfiles struct {
 	Theme     string   `yaml:"theme"`
 	Languages []string `yaml:"languages"`
@@ -40,6 +38,7 @@ type Dotfiles struct {
 	Fonts     []string `yaml:"fonts"`
 }
 
+// Customization ...
 type Customization struct {
 	Path string
 }
