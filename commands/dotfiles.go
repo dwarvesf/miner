@@ -252,6 +252,26 @@ func runUpdateDotfiles() {
 }
 
 func runCleanupDotfiles() {
+	path, err := getPathConfig()
+	if err != nil {
+		logrus.WithError(err).Error("cannot get path config file")
+		return
+	}
+
+	bs, err := ioutil.ReadFile(path)
+	if err != nil {
+		logrus.WithError(err).Error("cannot read local file")
+		return
+	}
+
+	var lschema Schema
+	err = yaml.Unmarshal(bs, &lschema)
+	if err != nil {
+		logrus.WithError(err).Error("cannot unmarshal yaml local file")
+		return
+	}
+
+	cleanUp(lschema)
 }
 
 func getPathConfig() (string, error) {
@@ -296,4 +316,10 @@ func stringInSlice(a string, list []string) bool {
 		}
 	}
 	return false
+}
+
+func cleanUp(local Schema) {
+	cleanUpTools(local.Dotfiles.Tools)
+	cleanUpLanguages(local.Dotfiles.Tools)
+	cleanUpEditors(local.Dotfiles.Editors)
 }
