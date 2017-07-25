@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/user"
 
@@ -208,22 +209,17 @@ func runRestoreDotfiles() {
 }
 
 func runUpdateDotfiles() {
-	// resp, err := http.Get(ConfigRemotePath)
-	// if err != nil {
-	// logrus.WithError(err).Error("cannot get file config remote")
-	// return
-	// }
-	// defer resp.Body.Close()
-
-	// bs, err := ioutil.ReadAll(resp.Body)
-	// if err != nil {
-	// logrus.WithError(err).Error("cannot get read body remote config file")
-	// return
-	// }
-
-	bs, err := ioutil.ReadFile(".dfrc.yml")
+	resp, err := http.Get(ConfigRemotePath)
 	if err != nil {
-		panic(err)
+		logrus.WithError(err).Error("cannot get file config remote")
+		return
+	}
+	defer resp.Body.Close()
+
+	bs, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		logrus.WithError(err).Error("cannot get read body remote config file")
+		return
 	}
 
 	var rschema Schema
